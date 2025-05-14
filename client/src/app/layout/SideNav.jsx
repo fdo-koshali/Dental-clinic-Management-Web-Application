@@ -7,7 +7,6 @@ import { useState } from "react";
 
 // SideNav component - Main navigation sidebar that displays different menu items based on user role
 const SideNav = ({ setActiveTopic }) => {
-
   // Get current location for active route highlighting
   const location = useLocation();
 
@@ -46,7 +45,6 @@ const SideNav = ({ setActiveTopic }) => {
 
   // Reusable NavItem component for navigation links
   const NavItem = ({ to, Icon, topic, label }) => {
-
     // Check if current route matches this nav item's route
     const isActive = location.pathname === to;
 
@@ -77,10 +75,8 @@ const SideNav = ({ setActiveTopic }) => {
   return (
     // Main sidebar container with full height
     <div className="flex h-screen">
-
       {/* Sidebar wrapper with fixed width and dark background */}
       <div className="w-[200px] bg-zinc-700 flex flex-col h-full">
-
         {/* Clinic name header */}
         <div className="flex-shrink-0 flex items-center justify-center h-16 bg-zinc-700 mb-4">
           <h1 className="text-white font-bold text-lg">Dental Clinic</h1>
@@ -88,7 +84,6 @@ const SideNav = ({ setActiveTopic }) => {
 
         {/* Scrollable navigation menu container */}
         <div className="flex-1 overflow-y-auto sidebar">
-
           {/* Conditional rendering based on user role */}
           {/* Dashboard - Super Admin only */}
           {user?.role === "Super Admin" && (
@@ -99,7 +94,7 @@ const SideNav = ({ setActiveTopic }) => {
               topic="Dashboard"
             />
           )}
-          
+
           {/* Appointments - Different views for patients and staff */}
           {user?.role === "patient" && (
             <NavItem
@@ -198,7 +193,6 @@ const SideNav = ({ setActiveTopic }) => {
           {/* Stock Management submenu items */}
           {showStockSubset && (
             <div className="pl-3">
-
               {/* Add Items - Super Admin only */}
               {user.role === "Super Admin" && (
                 <NavItem
@@ -210,12 +204,14 @@ const SideNav = ({ setActiveTopic }) => {
               )}
 
               {/* GRN - Available to all staff */}
-              <NavItem
-                to="/app/grn"
-                Icon={() => <i className="bi bi-file-earmark-plus"></i>}
-                label="GRN"
-                topic="GRN"
-              />
+              {user?.role !== "patient" && (
+                <NavItem
+                  to="/app/grn"
+                  Icon={() => <i className="bi bi-file-earmark-plus"></i>}
+                  label="GRN"
+                  topic="GRN"
+                />
+              )}
 
               {/* Request Note - Super Admin only */}
               {user.role === "Super Admin" && (
@@ -228,7 +224,7 @@ const SideNav = ({ setActiveTopic }) => {
               )}
 
               {/* Stock - Not for Assistants */}
-              {user.role !== "Assistant" && (
+              {user.role !== "Assistant" && user?.role !== "patient" && (
                 <NavItem
                   to="/app/stock"
                   Icon={() => <i className="bi bi-box"></i>}
@@ -258,7 +254,7 @@ const SideNav = ({ setActiveTopic }) => {
           )}
         </div>
 
-          {/* Logout section at bottom of sidebar */}
+        {/* Logout section at bottom of sidebar */}
         <div className="flex-shrink-0 w-full bg-zinc-700 py-4">
           <div
             className="flex pl-7 gap-2 items-center hover:text-white hover:bg-text-primary rounded-lg p-2 cursor-pointer text-gray-300"
