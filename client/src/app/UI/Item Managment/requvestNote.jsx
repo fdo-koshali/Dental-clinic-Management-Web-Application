@@ -1,3 +1,4 @@
+// Import necessary dependencies
 import React, { useState, useRef, useEffect } from "react";
 import {
   Table,
@@ -19,30 +20,33 @@ import { toast } from "react-toastify";
 import CommonLoading from "../../../utils/CommonLoading";
 
 const RequvestNote = () => {
-  const [searchText, setSearchText] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const searchInputRef = useRef(null);
+
+  // State management for component
+  const [searchText, setSearchText] = useState(""); // Search input text
+  const [isModalOpen, setIsModalOpen] = useState(false); // Add new request modal
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false); // View details modal
+  const [selectedRecord, setSelectedRecord] = useState(null); // Selected record for viewing
+  const searchInputRef = useRef(null); // Reference to search input
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
     total: 0,
   });
-  const [form] = Form.useForm();
-  const [orderDetails, setOrderDetails] = useState([]);
-  const [orderItemForm] = Form.useForm();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [currentpage, setCurrentPage] = useState(1);
-  const [items_per_page, setItemsPerPage] = useState(5);
-  const searchTimeoutRef = useRef(null);
-  const [tableData, setTableData] = useState([]);
-  const [items, setItems] = useState([]);
-  const [supplier, setSupplier] = useState([]);
-  const [orderId, setOrderId] = useState();
-
+  const [form] = Form.useForm(); // Main form instance
+  const [orderDetails, setOrderDetails] = useState([]); // Order items list
+  const [orderItemForm] = Form.useForm(); // Form for adding order items
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Edit modal
+  const [editForm] = Form.useForm(); // Edit form instance
+  const [loading, setLoading] = useState(false); // Loading state
+  const [currentpage, setCurrentPage] = useState(1); // Current page number
+  const [items_per_page, setItemsPerPage] = useState(5); // Items per page
+  const searchTimeoutRef = useRef(null); // For debouncing search
+  const [tableData, setTableData] = useState([]); // Main table data
+  const [items, setItems] = useState([]); // Items list for dropdown
+  const [supplier, setSupplier] = useState([]); // Suppliers list
+  const [orderId, setOrderId] = useState(); // Current order ID
+ 
+  // Status options for dropdowns
   const paymentStatusOptions = [
     { value: "Pending", label: "Pending" },
     { value: "Partial", label: "Partial" },
@@ -55,6 +59,7 @@ const RequvestNote = () => {
     { value: "Completed", label: "Completed" },
   ];
 
+  // Fetch items for dropdown
   const itemDDList = async () => {
     try {
       const response = await axios.get("/api/items/get/itemdd");
@@ -67,6 +72,7 @@ const RequvestNote = () => {
     }
   };
 
+  // Fetch suppliers for dropdown
   const SupplierDDList = async () => {
     try {
       const response = await axios.get("/api/user/get/supplierddList");
@@ -79,6 +85,7 @@ const RequvestNote = () => {
     }
   };
 
+  // Generate new order ID
   const OrderId = async () => {
     try {
       const response = await axios.get("/api/items/generateOrderId");
@@ -89,13 +96,17 @@ const RequvestNote = () => {
     }
   };
 
+  // Load initial data
   useEffect(() => {
     itemDDList();
     SupplierDDList();
     OrderId();
   }, []);
 
+  // Define table columns
   const columns = [
+
+    // ... columns configuration ...
     {
       title: "Order ID",
       dataIndex: "orderId",
@@ -160,6 +171,7 @@ const RequvestNote = () => {
     },
   ];
 
+  // Format options for dropdowns
   const supplierOptions = supplier.map((supplier) => ({
     value: supplier.USER_ID,
     label: supplier.NAME,
@@ -170,7 +182,10 @@ const RequvestNote = () => {
     label: item.ITEM_NAME,
   }));
 
+  // Define columns for order details tables
   const orderDetailsColumns = [
+
+    // ... order details columns ...
     {
       title: "Item Name",
       dataIndex: "itemName",
@@ -202,6 +217,8 @@ const RequvestNote = () => {
   ];
 
   const viewDetailsColumns = [
+
+    // ... view details columns ...
     {
       title: "Item Name",
       dataIndex: "itemName",
@@ -219,6 +236,7 @@ const RequvestNote = () => {
     },
   ];
 
+  // Fetch request notes data
   const getRequestNotes = async (searchText, page, items_per_page) => {
     setLoading(true);
     try {
@@ -227,8 +245,12 @@ const RequvestNote = () => {
         page,
         limit: items_per_page,
       });
+
+      // Format response data for table
       const formattedData = response.data?.data
         .map((item, index) => ({
+
+          // ... data mapping ...
           key: index,
           orderId: item.ORDER_ID,
           date: item.DATE,
@@ -263,6 +285,7 @@ const RequvestNote = () => {
     }
   };
 
+  // Handle search with debounce
   const handleSearch = (value) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -273,15 +296,18 @@ const RequvestNote = () => {
     }, 500);
   };
 
+  // Handle table pagination
   const handleTableChange = (pagination) => {
     setCurrentPage(pagination.current);
     setItemsPerPage(pagination.pageSize);
   };
 
+  // Load data when dependencies change
   useEffect(() => {
     getRequestNotes(searchText, currentpage, items_per_page);
   }, [searchText, currentpage, items_per_page]);
 
+  // Handle form actions
   const handleAddNewClick = () => {
     form.setFieldsValue({
       orderId: orderId,
@@ -307,11 +333,15 @@ const RequvestNote = () => {
     });
   };
 
+  // Remove item from order
   const handleRemoveOrderDetail = (index) => {
     setOrderDetails(orderDetails.filter((_, i) => i !== index));
   };
 
+  // Handle modal submissions
   const handleModalOk = async () => {
+
+    // ... modal submission logic ...
     if (orderDetails.length === 0) {
       return;
     }
@@ -346,6 +376,8 @@ const RequvestNote = () => {
   };
 
   const handleEditClick = (record) => {
+
+    // ... edit click logic ...
     editForm.setFieldsValue({
       orderId: record.orderId,
       totalValue: record.totalValue,
@@ -357,7 +389,10 @@ const RequvestNote = () => {
     setIsEditModalOpen(true);
   };
 
+  // Validate payment amount
   const validatePaymentAmount = (_, value) => {
+
+    // ... payment validation logic ...
     const totalValue = editForm.getFieldValue("totalValue");
     const paidValue = editForm.getFieldValue("paidValue") || 0;
 
@@ -369,7 +404,10 @@ const RequvestNote = () => {
     return Promise.resolve();
   };
 
+  // Handle edit form submission
   const handleEditOk = async () => {
+
+    // ... edit submission logic ...
     try {
       const values = await editForm.validateFields();
       const data = {
@@ -392,8 +430,11 @@ const RequvestNote = () => {
     }
   };
 
+  // Component render with UI elements
   return (
     <div className="p-4">
+
+      {/* Search and Add New button */}
       <div className="flex justify-between mb-4">
         <Input
           ref={searchInputRef}
@@ -410,7 +451,8 @@ const RequvestNote = () => {
           Add New Request
         </Button>
       </div>
-
+ 
+      {/* Main table */}
       <Table
         columns={columns}
         dataSource={tableData}
@@ -424,6 +466,7 @@ const RequvestNote = () => {
         onChange={handleTableChange}
       />
 
+      {/* Add New Request Modal */}
       <Modal
         title="Add New Request"
         open={isModalOpen}
@@ -439,6 +482,8 @@ const RequvestNote = () => {
           disabled: orderDetails.length === 0,
         }}
       >
+
+        {/* ... modal content ... */}
         <Form form={form} layout="vertical">
           <Row gutter={16}>
             <Col span={8}>
@@ -529,12 +574,15 @@ const RequvestNote = () => {
         </Form>
       </Modal>
 
+      {/* View Details Modal */}
       <Modal
         open={isViewModalOpen}
         onCancel={() => setIsViewModalOpen(false)}
         footer={null}
         width={600}
       >
+
+        {/* ... view modal content ... */}
         <Table
           columns={viewDetailsColumns}
           dataSource={[...(selectedRecord?.orderDetails || [])]}
@@ -543,6 +591,7 @@ const RequvestNote = () => {
         />
       </Modal>
 
+      {/* Edit Order Modal */}
       <Modal
         title="Edit Order"
         open={isEditModalOpen}
@@ -553,6 +602,8 @@ const RequvestNote = () => {
         }}
         width={600}
       >
+
+        {/* ... edit modal content ... */}
         <Form form={editForm} layout="vertical">
           <Row gutter={16}>
             <Col span={12}>
@@ -617,6 +668,8 @@ const RequvestNote = () => {
           </Row>
         </Form>
       </Modal>
+
+      {/* Loading overlay */}
       {loading && <CommonLoading />}
     </div>
   );

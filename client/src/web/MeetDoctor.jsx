@@ -1,4 +1,5 @@
-import img5 from "../assets/img5.webp";
+import img5 from "../assets/img5.avif";
+import img6 from "../assets/img6.jpg";
 
 const MeetDoctor = () => {
 
@@ -8,14 +9,16 @@ const MeetDoctor = () => {
       qualification: "Bachelor of Dental Surgery (BDS)",
       experience: "4.5 years",
       hospital: "Divisional Hospital Thalaimannar",
-      unit: "Dental OPD"
+      unit: "Dental OPD",
+      image: img5
     },
     {
       name: "Dr. K H C R K Fernando",
       qualification: "Bachelor of Dental Surgery (BDS)",
       experience: "9 years",
       hospital: "Dental Surgery by Dr K H C R K Fernando",
-      unit: "Private Practice"
+      unit: "Private Practice",
+      image: img6
     }
   ];
 
@@ -48,7 +51,7 @@ const MeetDoctor = () => {
                 </div>
               </div>
               <div className="w-1/3 ml-4">
-                <img src={img5} alt={doctor.name} className="w-[250px] h-[350px] object-cover rounded-lg" />
+                <img src={doctor.image} alt={doctor.name} className="w-[250px] h-[350px] object-cover rounded-lg" />
               </div>
             </div>
           ))}

@@ -25,8 +25,7 @@ export const generateItemIDController = async (req, res) => {
 
 // add material data
 export const addItemDataController = async (req, res) => {
-  const { code, name, description, status, unit } = req.body;
-  console.log(req.body);
+  const { code, name, description, status, unit } = req.body
   if (!code || !name || !description || !status || !unit) {
     return res.status(400).json({ error: "All data required!" });
   }

@@ -1,3 +1,4 @@
+// Import necessary dependencies
 import React, { useEffect, useState, useRef } from "react";
 import {
   Table,
@@ -17,24 +18,27 @@ import { toast } from "react-toastify";
 import CommonLoading from "../../../utils/CommonLoading";
 
 const AddItems = () => {
-  const [searchText, setSearchText] = useState("");
-  const searchInputRef = useRef(null);
-  const searchTimeoutRef = useRef(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
-  const [currentpage, setCurrentPage] = useState(1);
-  const [items_per_page, setItemsPerPage] = useState(5);
-  const [tableData, setTableData] = useState([]);
+
+  // State management for component
+  const [searchText, setSearchText] = useState(""); // Store search input
+  const searchInputRef = useRef(null); // Reference to search input field
+  const searchTimeoutRef = useRef(null); // For debouncing search
+  const [isModalOpen, setIsModalOpen] = useState(false); // Control modal visibility
+  const [form] = Form.useForm(); // Form instance for add/edit item
+  const [currentpage, setCurrentPage] = useState(1); // Current page number
+  const [items_per_page, setItemsPerPage] = useState(5); // Items per page
+  const [tableData, setTableData] = useState([]); // Store items data
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
     total: 0,
   });
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [itemID, setItemID] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Toggle between add/edit mode
+  const [selectedItem, setSelectedItem] = useState(null); // Store selected item for editing
+  const [itemID, setItemID] = useState(null); // Store new item ID
+  const [loading, setLoading] = useState(false); // Loading state
 
+  // Fetch items data with search and pagination
   const getItemsData = async (searchText, page, items_per_page) => {
     setLoading(true);
     try {
@@ -43,6 +47,8 @@ const AddItems = () => {
         page,
         limit: items_per_page,
       });
+
+      // Format response data for table
       const formattedData = response.data?.data.map((item) => ({
         code: item.ITEM_ID,
         name: item.ITEM_NAME,
@@ -60,6 +66,8 @@ const AddItems = () => {
       console.error("Failed to fetch items data:", error);
       toast.error(error.response?.data?.error || "Something went wrong!");
     } finally {
+
+      // Focus search input after loading
       setTimeout(() => {
         if (searchInputRef.current) {
           searchInputRef.current.focus();
@@ -69,6 +77,7 @@ const AddItems = () => {
     }
   };
 
+  // Fetch new item ID from server
   const getItemID = async () => {
     try {
       const response = await axios.get("/api/items/get/ID");
@@ -79,11 +88,13 @@ const AddItems = () => {
     }
   };
 
+  // Load initial data and refresh on dependencies change
   useEffect(() => {
     getItemsData(searchText, currentpage, items_per_page);
     getItemID();
   }, [searchText, currentpage, items_per_page]);
 
+  // Handle search with debounce
   const handleSearch = (value) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -94,11 +105,13 @@ const AddItems = () => {
     }, 500);
   };
 
+  // Handle table pagination change
   const handleTableChange = (pagination) => {
     setCurrentPage(pagination.current);
     setItemsPerPage(pagination.pageSize);
   };
 
+  // Handle edit button click
   const handleEditClick = (record) => {
     setIsEditMode(true);
     setSelectedItem(record);
@@ -112,6 +125,7 @@ const AddItems = () => {
     setIsModalOpen(true);
   };
 
+  // Define table columns
   const columns = [
     {
       title: "Code",
@@ -155,6 +169,7 @@ const AddItems = () => {
     },
   ];
 
+  // Handle form submission
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
@@ -167,6 +182,7 @@ const AddItems = () => {
         status: parseInt(values.status),
       };      
 
+      // Handle edit or add based on mode
       if (isEditMode) {
         const response = await axios.put(`/api/items/edit`, data);
         toast.success(response?.data?.message || "Item updated successfully");
@@ -188,6 +204,7 @@ const AddItems = () => {
     }
   };
 
+  // Handle modal cancel
   const handleCancel = () => {
     form.resetFields();
     setIsModalOpen(false);
@@ -195,6 +212,7 @@ const AddItems = () => {
     setSelectedItem(null);
   };
 
+  // Handle add new item button click
   const handleAddNewClick = () => {
     form.resetFields();
     // Set the itemID as the code value when opening the modal for a new item
@@ -203,8 +221,11 @@ const AddItems = () => {
     setIsEditMode(false);
   };
 
+  // Component render
   return (
     <div className="p-4">
+
+      {/* Search and Add New button row */}
       <div className="flex justify-between mb-4">
         <Input
           ref={searchInputRef}
@@ -222,6 +243,7 @@ const AddItems = () => {
         </Button>
       </div>
 
+      {/* Items table */}
       <Table
         columns={columns}
         dataSource={tableData}
@@ -235,6 +257,7 @@ const AddItems = () => {
         onChange={handleTableChange}
       />
 
+      {/* Add/Edit modal */}
       <Modal
         title={isEditMode ? "Edit Item" : "Add New Item"}
         open={isModalOpen}
@@ -248,6 +271,8 @@ const AddItems = () => {
           name="itemForm"
           validateTrigger="onBlur"
         >
+
+          {/* Form fields in two columns */}
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -275,6 +300,7 @@ const AddItems = () => {
             </Col>
           </Row>
 
+          {/* Description field */}
           <Form.Item
             name="description"
             label="Description"
@@ -286,6 +312,7 @@ const AddItems = () => {
             <Input.TextArea rows={4} maxLength={200} />
           </Form.Item>
 
+          {/* Unit and Status fields */}
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -319,6 +346,7 @@ const AddItems = () => {
         </Form>
       </Modal>
 
+      {/* Loading overlay */}
       {loading && <CommonLoading />}
     </div>
   );

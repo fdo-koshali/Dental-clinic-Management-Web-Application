@@ -1,3 +1,4 @@
+// Import necessary dependencies
 import React, { useEffect, useState, useRef } from "react";
 import {
   Table,
@@ -20,30 +21,33 @@ import { toast } from "react-toastify";
 import CommonLoading from "../../../utils/CommonLoading";
 import ImageCropper from '../../../components/ImageCropper';
 
+// Base URL for user profile images
 const BASE_IMAGE_URL = '/api/user/images';
 
 const MemberManagemnt = () => {
-  const [searchText, setSearchText] = useState("");
-  const searchInputRef = useRef(null);
-  const searchTimeoutRef = useRef(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
-  const [currentpage, setCurrentPage] = useState(1);
-  const [items_per_page, setItemsPerPage] = useState(5);
-  const [tableData, setTableData] = useState([]);
+  // State management for component
+  const [searchText, setSearchText] = useState(""); // Search input text
+  const searchInputRef = useRef(null); // Reference to search input
+  const searchTimeoutRef = useRef(null); // For debouncing search
+  const [isModalOpen, setIsModalOpen] = useState(false); // Control modal visibility
+  const [form] = Form.useForm(); // Form instance
+  const [currentpage, setCurrentPage] = useState(1); // Current page number
+  const [items_per_page, setItemsPerPage] = useState(5); // Items per page
+  const [tableData, setTableData] = useState([]); // Store member data
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
     total: 0,
   });
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [showCropper, setShowCropper] = useState(false);
-  const [croppedImage, setCroppedImage] = useState(null);
-  const [userId, setUserId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false); // Toggle between add/edit mode
+  const [selectedMember, setSelectedMember] = useState(null); // Store selected member for editing
+  const [loading, setLoading] = useState(false); // Loading state
+  const [selectedImage, setSelectedImage] = useState(null); // Selected profile image
+  const [showCropper, setShowCropper] = useState(false); // Image cropper visibility
+  const [croppedImage, setCroppedImage] = useState(null); // Cropped image data
+  const [userId, setUserId] = useState(null); // Store new user ID
 
+  // Fetch member data from API with search and pagination
   const getMemberData = async (searchText, page, items_per_page) => {
     setLoading(true);
     try {
@@ -52,7 +56,11 @@ const MemberManagemnt = () => {
         page,
         limit: items_per_page,
       });
+
+      // Format response data for table
       const formattedData = response.data?.data.map(item => ({
+
+        // ... data mapping
         key: item.ID,
         userId: item.USER_ID,
         firstName: item.FIRST_NAME,
@@ -78,6 +86,8 @@ const MemberManagemnt = () => {
       console.error("Failed to fetch member data:", error);
       toast.error(error.response?.data?.error || "Something went wrong!");
     } finally {
+
+      // Set focus back to search input after loading
       setTimeout(() => {
         if (searchInputRef.current) {
           searchInputRef.current.focus();
@@ -87,6 +97,7 @@ const MemberManagemnt = () => {
     }
   };
 
+  // Generate new user ID from API
   const getUserId = async () => {
     try {
       const response = await axios.get("/api/user/generateUserId");
@@ -97,11 +108,13 @@ const MemberManagemnt = () => {
     }
   };
 
+  // Load initial data and refresh on dependencies change
   useEffect(() => {
     getMemberData(searchText, currentpage, items_per_page);
     getUserId();
   }, [searchText, currentpage, items_per_page]);
 
+  // Handle search with debouncing
   const handleSearch = (value) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -112,11 +125,13 @@ const MemberManagemnt = () => {
     }, 500);
   };
 
+  // Handle table pagination changes
   const handleTableChange = (pagination) => {
     setCurrentPage(pagination.current);
     setItemsPerPage(pagination.pageSize);
   };
 
+  // Handle edit button click
   const handleEditClick = (record) => {
     setIsEditMode(true);
     setSelectedMember(record);
@@ -129,13 +144,17 @@ const MemberManagemnt = () => {
     setIsModalOpen(true);
   };
 
+  // Handle image cropping completion
   const handleCropComplete = async (croppedArea) => {
     try {
+
+      // Create canvas and process cropped image
       const canvas = document.createElement('canvas');
       const image = new Image();
       image.crossOrigin = "anonymous"; 
       image.src = selectedImage;
       
+      // ... image processing logic ...
       await new Promise((resolve, reject) => {
         image.onload = resolve;
         image.onerror = reject;
@@ -168,7 +187,10 @@ const MemberManagemnt = () => {
     }
   };
 
+  // Define table columns configuration
   const columns = [
+
+    // ... column definitions ...
     {
       title: "User ID",
       dataIndex: "userId",
@@ -247,10 +269,13 @@ const MemberManagemnt = () => {
     },
   ];
 
+  // Handle form submission
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
       const formData = new FormData();
+
+      // ... form data preparation ...
       (isEditMode && selectedMember && formData.append("code", selectedMember?.userId));
       (!isEditMode && formData.append("code", userId));
       formData.append("firstName", values.firstName);
@@ -265,7 +290,7 @@ const MemberManagemnt = () => {
       formData.append("role", values.role);
       formData.append("status", values.status);
 
-      // Convert base64 to blob and append
+
       if (croppedImage) {
         const response = await fetch(croppedImage);
         const blob = await response.blob();
@@ -273,6 +298,8 @@ const MemberManagemnt = () => {
       }
 
       if (isEditMode) {
+
+        // Handle edit mode submission
         const response = await axios.put(`/api/user/editUser`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -280,6 +307,8 @@ const MemberManagemnt = () => {
         setIsEditMode(false);
         setSelectedMember(null);
       } else {
+
+        // Handle add mode submission
         const response = await axios.post("/api/user/addUser", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -287,6 +316,7 @@ const MemberManagemnt = () => {
         toast.success(response?.data?.message);
       }
       
+      // Reset form and states
       form.resetFields();
       setIsModalOpen(false);
       setSelectedImage(null);
@@ -299,20 +329,24 @@ const MemberManagemnt = () => {
     }
   };
 
+  // Handle modal cancel
   const handleCancel = () => {
     form.resetFields();
     setIsModalOpen(false);
     setIsEditMode(false);
     setSelectedMember(null);
-    // Clear image states
     setSelectedImage(null);
     setCroppedImage(null);
     setShowCropper(false);
   };
 
+  // Component render
   return (
     <div className="p-4">
+      {/* Search and Add New button */}
       <div className="flex justify-between mb-4">
+
+        {/* ... search input and add button ... */}
         <Input
           ref={searchInputRef}
           placeholder="Search members..."
@@ -329,6 +363,7 @@ const MemberManagemnt = () => {
         </Button>
       </div>
 
+      {/* Members table */}
       <Table
         columns={columns}
         dataSource={tableData}
@@ -341,6 +376,7 @@ const MemberManagemnt = () => {
         onChange={handleTableChange}
       />
 
+      {/* Add/Edit Member Modal */}
       <Modal
         title={isEditMode ? "Edit Member" : "Add New Member"}
         open={isModalOpen}
@@ -348,13 +384,19 @@ const MemberManagemnt = () => {
         onCancel={handleCancel}
         width={800}
       >
+
+        {/* Member form with profile image upload and fields */}
         <Form
           form={form}
           layout="vertical"
           name="memberForm"
           validateTrigger="onBlur"
         >
+
+          {/* Profile image upload section */}
           <div className="mb-8 text-center">
+          
+            {/* ... image upload UI ... */}
             <div className="relative inline-block">
               <Upload
                 showUploadList={false}
@@ -541,6 +583,7 @@ const MemberManagemnt = () => {
         </Form>
       </Modal>
 
+      {/* Image Cropper Modal */}
       {showCropper && (
         <ImageCropper
           image={selectedImage}
@@ -552,6 +595,7 @@ const MemberManagemnt = () => {
         />
       )}
 
+      {/* Loading overlay */}
       {loading && <CommonLoading />}
     </div>
   );

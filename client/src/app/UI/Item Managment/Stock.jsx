@@ -1,19 +1,22 @@
+// Import necessary dependencies
 import React, { useState, useEffect, useRef } from 'react';
 import { Input, Button, Table, Space } from 'antd';
 import { SearchOutlined, PrinterOutlined } from '@ant-design/icons';
-import { jsPDF } from "jspdf";
-import autoTable from 'jspdf-autotable';
+import { jsPDF } from "jspdf"; // For PDF generation
+import autoTable from 'jspdf-autotable'; // For creating tables in PDF
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const Stock = () => {
-  const [searchText, setSearchText] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [stockData, setStockData] = useState([]);
-  const searchInputRef = useRef(null);
-  const searchTimeoutRef = useRef(null);
 
-  // Function to fetch stock data from the API
+  // State management
+  const [searchText, setSearchText] = useState(''); // Store search query
+  const [loading, setLoading] = useState(false); // Loading state for API calls
+  const [stockData, setStockData] = useState([]); // Store stock items data
+  const searchInputRef = useRef(null); // Reference to search input for focus
+  const searchTimeoutRef = useRef(null); // For debouncing search
+
+  // Fetch stock data from the API with search functionality
   const getStockData = async (searchText) => {
     setLoading(true);
     try {
@@ -21,7 +24,7 @@ const Stock = () => {
         search: searchText,
       });
       
-      // Formatting the response data to match the table structure
+      /// Transform API response data to match table structure
       const dataArray = response.data || [];
      
       const formattedData = dataArray.map((item) => ({
@@ -31,7 +34,7 @@ const Stock = () => {
         unit: item.UNIT,
         lastUpdateDate: item.UPDATE_DATE,
         quantity: `${item.COUNT} ${item.UNIT}`,
-        countValue: item.COUNT, 
+        countValue: item.COUNT, // For sorting purposes
       }));
       
       setStockData(formattedData);
@@ -42,6 +45,8 @@ const Stock = () => {
       // Set default data in case of error
       setStockData([]);
     } finally {
+
+      // Set focus back to search input after loading
       setTimeout(() => {
         if (searchInputRef.current) {
           searchInputRef.current.focus();
@@ -51,10 +56,12 @@ const Stock = () => {
     }
   };
 
+  // Fetch data when search text changes
   useEffect(() => {
     getStockData(searchText);
   }, [searchText]);
 
+  // Handle search with debouncing
   const handleSearch = (e) => {
     const value = e.target.value;
     
@@ -90,7 +97,7 @@ const Stock = () => {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
-      sorter: (a, b) => a.countValue - b.countValue,
+      sorter: (a, b) => a.countValue - b.countValue, // Enable sorting by quantity
     },
   ];
 
@@ -127,8 +134,11 @@ const Stock = () => {
     }
   };
 
+  // Render component
   return (
     <div style={{ padding: '20px' }}>
+
+      {/* Search and Print buttons */}
       <Space style={{ marginBottom: 16 }}>
         <Input
           placeholder="Search by item code or name"
@@ -146,6 +156,7 @@ const Stock = () => {
         </Button>
       </Space>
       
+      {/* Stock data table */}
       <Table 
         columns={columns} 
         dataSource={stockData} 
